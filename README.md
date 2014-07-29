@@ -1,7 +1,8 @@
 ofxSURFTracker
 ==============
 
-ofxSURFTracker is a very simple addon for tracking objects in images and video using openCV SURF.
+ofxSURFTracker is a very simple addon for tracking objects in images and video using openCV SURF. 
+Based on the demo code from [http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html](http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html)
 
 [Demo video](http://vimeo.com/timknapen/ofxsurftracker-demo)
 
