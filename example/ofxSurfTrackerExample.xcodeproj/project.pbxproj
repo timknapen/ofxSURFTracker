@@ -72,7 +72,6 @@
 		221BAF911976857500EF4B18 /* ofxSurfTrackerExample_debug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ofxSurfTrackerExample_debug.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		224F569019830431003EA459 /* ofxSURFTracker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxSURFTracker.cpp; sourceTree = "<group>"; };
 		224F569119830431003EA459 /* ofxSURFTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxSURFTracker.h; sourceTree = "<group>"; };
-		22882847197D441B0073303D /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = "../../../../../Projecten/2014/19 Tennisballen/_ software/openCV features2D homography /main.cpp"; sourceTree = "<group>"; };
 		22C538D21975A9A400A3772A /* addon_config.mk */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = addon_config.mk; sourceTree = "<group>"; };
 		22C538D71975A9A400A3772A /* cv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cv.h; sourceTree = "<group>"; };
 		22C538D81975A9A400A3772A /* cv.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = cv.hpp; sourceTree = "<group>"; };
@@ -589,7 +588,6 @@
 				BB4B014C10F69532006C3DED /* addons */,
 				E45BE5980E8CC70C009D7055 /* frameworks */,
 				221BAF911976857500EF4B18 /* ofxSurfTrackerExample_debug.app */,
-				22882847197D441B0073303D /* main.cpp */,
 			);
 			sourceTree = "<group>";
 		};
