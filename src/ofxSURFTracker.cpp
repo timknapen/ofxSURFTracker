@@ -39,14 +39,14 @@ void ofxSURFTracker::draw(){
     ofSetColor(255, 255, 0);
     ofSetLineWidth(1);
     int d = 10; // length of croshairs
-    ofLine(0, 0, 0 + d, 0);
-    ofLine(0, 0, 0, 0 + d);
-    ofLine(width, 0, width - d, 0);
-    ofLine(width, 0, width, 0 + d);
-    ofLine(width, height, width - d, height);
-    ofLine(width, height, width, height - d);
-    ofLine(0, height, 0 + d, height);
-    ofLine(0, height, 0, height - d);
+    ofDrawLine(0, 0, 0 + d, 0);
+    ofDrawLine(0, 0, 0, 0 + d);
+    ofDrawLine(width, 0, width - d, 0);
+    ofDrawLine(width, 0, width, 0 + d);
+    ofDrawLine(width, height, width - d, height);
+    ofDrawLine(width, height, width, height - d);
+    ofDrawLine(0, height, 0 + d, height);
+    ofDrawLine(0, height, 0, height - d);
     
     if(bDrawImage){
         ofSetColor(255);
@@ -77,7 +77,7 @@ void ofxSURFTracker::drawFeatures(){
     ofNoFill();
     ofSetColor(0, 255, 0);
     for(int i = 0; i < keypoints_scene.size(); i++){
-        ofCircle(keypoints_scene[i].pt.x, keypoints_scene[i].pt.y, 2);
+        ofDrawCircle(keypoints_scene[i].pt.x, keypoints_scene[i].pt.y, 2);
     }
     
 }
@@ -89,8 +89,8 @@ void ofxSURFTracker::drawResponses(){
     for(int i = 0; i < keypoints_scene.size(); i++){
         KeyPoint kp = keypoints_scene[i];
         float l = kp.response/1000;
-        ofCircle(kp.pt.x, kp.pt.y,  l);
-        ofLine(kp.pt.x, kp.pt.y, kp.pt.x + l*cos(kp.angle), kp.pt.y + l*sin(kp.angle));
+        ofDrawCircle(kp.pt.x, kp.pt.y,  l);
+        ofDrawLine(kp.pt.x, kp.pt.y, kp.pt.x + l*cos(kp.angle), kp.pt.y + l*sin(kp.angle));
     }
 }
 
@@ -102,10 +102,10 @@ void ofxSURFTracker::drawMatches(){
         ofSetColor(d, 0, 500 - d);
         Point2f p1 = keypoints_object[ good_matches[i].queryIdx ].pt;
         Point2f p2 = keypoints_scene[ good_matches[i].trainIdx ].pt;
-        ofLine( p1.x, p1.y, p2.x, p2.y);
+        ofDrawLine( p1.x, p1.y, p2.x, p2.y);
         ofFill();
-        ofCircle(p1.x, p1.y, 2);
-        ofCircle(p2.x, p2.y, 2);
+        ofDrawCircle(p1.x, p1.y, 2);
+        ofDrawCircle(p2.x, p2.y, 2);
     }
 }
 
