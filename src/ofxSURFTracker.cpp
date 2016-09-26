@@ -18,7 +18,7 @@ ofxSURFTracker::ofxSURFTracker(){
     octaveLayers = 4;
     bUpright = bContrast = false;
     distanceThreshold = 0.2;
-    bDrawFeatures = bDrawMatches  = bDrawHomography = true;
+    bDrawFeatures = bDrawMatches = bDrawHomography = bDrawCrossHairs = true;
     bDrawImage = bDrawResponses = false;
     minMatches = 5;
     objectLifeTime = 0;
@@ -33,21 +33,24 @@ ofxSURFTracker::~ofxSURFTracker(){
 
 //-----------------------------------------------------
 void ofxSURFTracker::draw(){
-    
+	
+	ofPushStyle();
+	ofDisableSmoothing();
     // Crosshairs
-    ofNoFill();
-    ofSetColor(255, 255, 0);
-    ofSetLineWidth(1);
-    int d = 10; // length of croshairs
-    ofDrawLine(0, 0, 0 + d, 0);
-    ofDrawLine(0, 0, 0, 0 + d);
-    ofDrawLine(width, 0, width - d, 0);
-    ofDrawLine(width, 0, width, 0 + d);
-    ofDrawLine(width, height, width - d, height);
-    ofDrawLine(width, height, width, height - d);
-    ofDrawLine(0, height, 0 + d, height);
-    ofDrawLine(0, height, 0, height - d);
-    
+	if(bDrawCrossHairs){
+		ofNoFill();
+		ofSetColor(255, 255, 0);
+		ofSetLineWidth(1);
+		int d = 10; // length of croshairs
+		ofDrawLine(0, 0, 0 + d, 0);
+		ofDrawLine(0, 0, 0, 0 + d);
+		ofDrawLine(width, 0, width - d, 0);
+		ofDrawLine(width, 0, width, 0 + d);
+		ofDrawLine(width, height, width - d, height);
+		ofDrawLine(width, height, width, height - d);
+		ofDrawLine(0, height, 0 + d, height);
+		ofDrawLine(0, height, 0, height - d);
+	}
     if(bDrawImage){
         ofSetColor(255);
         trackImg.draw(0,0);
@@ -64,6 +67,7 @@ void ofxSURFTracker::draw(){
     if(bDrawHomography){
         drawHomoGraphy();
     }
+	ofPopStyle();
 }
 
 //-----------------------------------------------------
@@ -77,7 +81,13 @@ void ofxSURFTracker::drawFeatures(){
     ofNoFill();
     ofSetColor(0, 255, 0);
     for(int i = 0; i < keypoints_scene.size(); i++){
-        ofDrawCircle(keypoints_scene[i].pt.x, keypoints_scene[i].pt.y, 2);
+        // ofDrawCircle(keypoints_scene[i].pt.x, keypoints_scene[i].pt.y, 2);
+		ofPushMatrix();
+		ofTranslate(keypoints_scene[i].pt.x, keypoints_scene[i].pt.y);
+		ofDrawLine(-2, -2, 2, 2);
+		ofDrawLine(2, -2, -2, 2);
+		ofPopMatrix();
+		
     }
     
 }
@@ -98,8 +108,8 @@ void ofxSURFTracker::drawResponses(){
 void ofxSURFTracker::drawMatches(){
     for(int i = 0; i < good_matches.size();i++){
         DMatch match = good_matches[i];
-        int d = match.distance*500;
-        ofSetColor(d, 0, 500 - d);
+        int d = match.distance/distanceThreshold * 255;
+        ofSetColor(d, 0, 255 - d);
         Point2f p1 = keypoints_object[ good_matches[i].queryIdx ].pt;
         Point2f p2 = keypoints_scene[ good_matches[i].trainIdx ].pt;
         ofDrawLine( p1.x, p1.y, p2.x, p2.y);
@@ -177,6 +187,7 @@ void ofxSURFTracker::detect(unsigned char *pix, int inputWidth, int inputHeight)
     detector =  SurfFeatureDetector(hessianThreshold,
                                     octaves,
                                     octaveLayers,
+									bExtended,
                                     bUpright);
     
     // clear existing keypoints from previous frame

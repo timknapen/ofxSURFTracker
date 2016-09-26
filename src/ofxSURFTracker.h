@@ -34,16 +34,41 @@ public:
     void detect(ofImage& img);
     void detect(unsigned char * pix, int inputWidth, int inputHeight);
     void learnFeatures();
-    
     float objectLifeTime; // is the object detected a long enough time to be trusted?
-    
-    
-    // options
+	
+	
+	// options
+	/** 
+	 PARAMETERS
+	 INT extended
+		0 means that the basic descriptors (64 elements each) shall be computed
+		1 means that the extended descriptors (128 elements each) shall be computed
+	 
+	 INT upright
+	 0 means that detector computes orientation of each feature.
+	 1 means that the orientation is not computed (which is much, much faster). 
+	 For example, if you match images from a stereo pair, or do image stitching, the matched features likely have very similar angles, and you can speed up feature extraction by setting upright=1.
+	 
+	 DOUBLE hessianThreshold
+	 Threshold for the keypoint detector. 
+	 Only features, whose hessian is larger than hessianThreshold are retained by the detector. 
+	 Therefore, the larger the value, the less keypoints you will get. 
+	 A good default value could be from 300 to 500, depending from the image contrast.
+	 
+	 INT nOctaves
+	 The number of a gaussian pyramid octaves that the detector uses. 
+	 It is set to 4 by default. If you want to get very large features, use the larger value. 
+	 If you want just small features, decrease it.
+	 
+	 INT nOctaveLayers
+	 The number of images within each octave of a gaussian pyramid. It is set to 2 by default.
+	 **/
     float distanceThreshold;
     float hessianThreshold;
     float octaves;
     float octaveLayers;
     float minMatches;
+	bool bExtended;
     bool bUpright;
     bool bContrast;
     
@@ -53,6 +78,7 @@ public:
     bool bDrawHomography;
     bool bDrawMatches;
     bool bDrawResponses;
+	bool bDrawCrossHairs;
     
     // transform a set of points with the found perspective transformation
     void transFormPoints( vector<ofPoint>&points);
