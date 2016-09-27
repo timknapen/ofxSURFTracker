@@ -100,6 +100,9 @@ public:
 	Mat getObjectDescriptors();
 	ofImage getCroppedImage();
 
+	float getWidth();
+	float getHeight();
+	
 private:
     int width, height;
     ofxCvColorImage inputImg;

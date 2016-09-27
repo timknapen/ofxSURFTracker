@@ -38,6 +38,7 @@ void ofxSURFTracker::draw(){
     // Crosshairs
 	if(bDrawCrossHairs){
 		ofNoFill();
+		ofPushStyle();
 		ofSetColor(255, 255, 0);
 		ofSetLineWidth(1);
 		int d = 10; // length of croshairs
@@ -49,6 +50,7 @@ void ofxSURFTracker::draw(){
 		ofDrawLine(width, height, width, height - d);
 		ofDrawLine(0, height, 0 + d, height);
 		ofDrawLine(0, height, 0, height - d);
+		ofPopStyle();
 	}
     if(bDrawImage){
         ofSetColor(255);
@@ -121,7 +123,6 @@ void ofxSURFTracker::drawMatches(){
 //-----------------------------------------------------
 void ofxSURFTracker::drawHomoGraphy(){
     // Draw the transformed bounding box
-    ofSetColor(255, 0, 0);
     ofNoFill();
     ofBeginShape();
     for(int i = 0; i < objectBounds_Transformed.size(); i++){
@@ -320,10 +321,12 @@ void ofxSURFTracker::transFormPoints(vector<ofPoint> & points){
 void ofxSURFTracker::setSize(int _width, int _height){
     // set the width and height of the image used for detection
     // this will be cropped out of the center of the image being fed to the tracker
+	if(_width != width || _height != height){
     width = _width;
     height = _height;
     trackImg.clear();
     trackImg.allocate(width, height);
+	}
 }
 
 //-----------------------------------------------------
@@ -347,6 +350,17 @@ ofImage ofxSURFTracker::getCroppedImage(){
 	newImg.setFromPixels(croppedImg.getPixels(), croppedImg.getWidth(), croppedImg.getHeight(), OF_IMAGE_COLOR);
 	return newImg;
 }
+
+//-----------------------------------------------------
+float ofxSURFTracker::getWidth(){
+	return width;
+}
+
+//-----------------------------------------------------
+float ofxSURFTracker::getHeight(){
+	return height;
+}
+
 
 
 
