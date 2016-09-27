@@ -31,15 +31,23 @@ public:
     void drawMatches();
     void drawHomoGraphy();
     void setSize(int _width, int _height);
-    void detect(ofImage& img);
-    void detect(unsigned char * pix, int inputWidth, int inputHeight);
-    void learnFeatures();
-    float objectLifeTime; // is the object detected a long enough time to be trusted?
 	
+	// detect features in the supplied image
+	void detect(ofImage& img);
+    void detect(unsigned char * pix, int inputWidth, int inputHeight);
+	
+	// save the detected keypoints and descriptors in the "object"
+    void learnFeatures();
+	
+	// detect match with the current scene and return the number of matches
+	int match(vector<KeyPoint> keyPoints, Mat descriptors, vector <Point2f> bounds);
+	
+	// calculate the perspective transform and apply to bounds polygon
+	void createHomography(vector<KeyPoint> keyPoints, vector <Point2f> bounds);
 	
 	// options
-	/** 
-	 PARAMETERS
+	/**  PARAMETERS *****
+	 
 	 INT extended
 		0 means that the basic descriptors (64 elements each) shall be computed
 		1 means that the extended descriptors (128 elements each) shall be computed
@@ -85,6 +93,12 @@ public:
     
     // get the number of approved matches, a measure for the quality
     int getNumGoodMatches();
+	
+	// access the tracked object:
+	vector <KeyPoint> getObjectKeyPoints();
+	vector <Point2f> getObjectBounds();
+	Mat getObjectDescriptors();
+	ofImage getCroppedImage();
 
 private:
     int width, height;
@@ -93,12 +107,18 @@ private:
     ofxCvGrayscaleImage trackImg;
     
     // keypoints and descriptors
-    vector<KeyPoint> keypoints_object, keypoints_scene;
-    vector< DMatch > good_matches;
-    Mat descriptors_object, descriptors_scene;
-    Mat homography;
-    vector <Point2f> object;
-    vector <Point2f> object_transformed;
+	
+	vector<KeyPoint> keyPoints_Object;			// keypoints of the object we're tracking
+	Mat descriptors_Object;						// descriptors the object we're tracking
+	vector <Point2f> objectBounds;				// bounds of the original object
+
+	
+	vector<KeyPoint> keyPoints_Scene;			// keypoints in the current scene
+	Mat descriptors_Scene;						// descriptors in the current scene
+	
+	vector< DMatch > good_Matches;				// matches between original and new descriptors
+    Mat homography;								// prespective transform between original and new features
+    vector <Point2f> objectBounds_Transformed;	// perspective transformed bounds
     
     SurfFeatureDetector detector;
     SurfDescriptorExtractor extractor;

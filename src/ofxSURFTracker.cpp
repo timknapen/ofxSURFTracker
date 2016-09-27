@@ -21,7 +21,6 @@ ofxSURFTracker::ofxSURFTracker(){
     bDrawFeatures = bDrawMatches = bDrawHomography = bDrawCrossHairs = true;
     bDrawImage = bDrawResponses = false;
     minMatches = 5;
-    objectLifeTime = 0;
 }
 
 //-----------------------------------------------------
@@ -72,7 +71,7 @@ void ofxSURFTracker::draw(){
 
 //-----------------------------------------------------
 int ofxSURFTracker::getNumGoodMatches(){
-    return good_matches.size();
+    return good_Matches.size();
 }
 
 //-----------------------------------------------------
@@ -80,10 +79,10 @@ void ofxSURFTracker::drawFeatures(){
     
     ofNoFill();
     ofSetColor(0, 255, 0);
-    for(int i = 0; i < keypoints_scene.size(); i++){
-        // ofDrawCircle(keypoints_scene[i].pt.x, keypoints_scene[i].pt.y, 2);
+    for(int i = 0; i < keyPoints_Scene.size(); i++){
+        // ofDrawCircle(keyPoints_Scene[i].pt.x, keyPoints_Scene[i].pt.y, 2);
 		ofPushMatrix();
-		ofTranslate(keypoints_scene[i].pt.x, keypoints_scene[i].pt.y);
+		ofTranslate(keyPoints_Scene[i].pt.x, keyPoints_Scene[i].pt.y);
 		ofDrawLine(-2, -2, 2, 2);
 		ofDrawLine(2, -2, -2, 2);
 		ofPopMatrix();
@@ -96,8 +95,8 @@ void ofxSURFTracker::drawFeatures(){
 void ofxSURFTracker::drawResponses(){
     ofNoFill();
     ofSetColor(0, 255, 0);
-    for(int i = 0; i < keypoints_scene.size(); i++){
-        KeyPoint kp = keypoints_scene[i];
+    for(int i = 0; i < keyPoints_Scene.size(); i++){
+        KeyPoint kp = keyPoints_Scene[i];
         float l = kp.response/1000;
         ofDrawCircle(kp.pt.x, kp.pt.y,  l);
         ofDrawLine(kp.pt.x, kp.pt.y, kp.pt.x + l*cos(kp.angle), kp.pt.y + l*sin(kp.angle));
@@ -106,12 +105,12 @@ void ofxSURFTracker::drawResponses(){
 
 //-----------------------------------------------------
 void ofxSURFTracker::drawMatches(){
-    for(int i = 0; i < good_matches.size();i++){
-        DMatch match = good_matches[i];
+    for(int i = 0; i < good_Matches.size();i++){
+        DMatch match = good_Matches[i];
         int d = match.distance/distanceThreshold * 255;
         ofSetColor(d, 0, 255 - d);
-        Point2f p1 = keypoints_object[ good_matches[i].queryIdx ].pt;
-        Point2f p2 = keypoints_scene[ good_matches[i].trainIdx ].pt;
+        Point2f p1 = keyPoints_Object[ good_Matches[i].queryIdx ].pt;
+        Point2f p2 = keyPoints_Scene[ good_Matches[i].trainIdx ].pt;
         ofDrawLine( p1.x, p1.y, p2.x, p2.y);
         ofFill();
         ofDrawCircle(p1.x, p1.y, 2);
@@ -119,18 +118,17 @@ void ofxSURFTracker::drawMatches(){
     }
 }
 
-
 //-----------------------------------------------------
 void ofxSURFTracker::drawHomoGraphy(){
     // Draw the transformed bounding box
-    ofSetColor(255, 255 - 255* objectLifeTime, 0);
+    ofSetColor(255, 0, 0);
     ofNoFill();
     ofBeginShape();
-    for(int i = 0; i < object_transformed.size(); i++){
-        ofVertex(object_transformed[i].x, object_transformed[i].y);
+    for(int i = 0; i < objectBounds_Transformed.size(); i++){
+        ofVertex(objectBounds_Transformed[i].x, objectBounds_Transformed[i].y);
     }
-    if( object_transformed.size() > 0){
-        ofVertex(object_transformed[0].x, object_transformed[0].y);
+    if( objectBounds_Transformed.size() > 0){
+        ofVertex(objectBounds_Transformed[0].x, objectBounds_Transformed[0].y);
     }
     ofEndShape();
 }
@@ -155,7 +153,11 @@ void ofxSURFTracker::detect(unsigned char *pix, int inputWidth, int inputHeight)
     /***
     code adapted from http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html
      ***/
-    
+	
+	// clear existing keypoints from previous frame
+	keyPoints_Scene.clear();
+	objectBounds_Transformed.clear();
+	
     if( inputWidth != inputImg.getWidth() || inputHeight != inputImg.getHeight()){
         // this should only happen once
         inputImg.clear();
@@ -190,81 +192,29 @@ void ofxSURFTracker::detect(unsigned char *pix, int inputWidth, int inputHeight)
 									bExtended,
                                     bUpright);
     
-    // clear existing keypoints from previous frame
-    keypoints_scene.clear();
+	
     
     // get the Mat to do the feature detection on
     Mat trackMat = cvarrToMat(trackImg.getCvImage());
-    detector.detect( trackMat, keypoints_scene);
+    detector.detect( trackMat, keyPoints_Scene);
     
     // Calculate descriptors (feature vectors)
-    extractor.compute( trackMat, keypoints_scene, descriptors_scene );
-    
-    // Matching descriptor vectors using FLANN matcher
-    vector< DMatch > matches;
-    if(!descriptors_object.empty() && !descriptors_scene.empty() ){
-        flannMatcher.match( descriptors_object, descriptors_scene, matches);
-    }
-    
-    // Quick calculation of max and min distances between keypoints
-    double max_dist = 0;
-    double min_dist = 100;
-    for( int i = 0; i < matches.size(); i++ ) {
-        double dist = matches[i].distance;
-        if( dist < min_dist ) min_dist = dist;
-        if( dist > max_dist ) max_dist = dist;
-    }
-    
-    // Filter matches upon quality : distance is between 0 and 1, lower is better
-    good_matches.clear();
-    for( int i = 0; i < matches.size(); i++ ){
-        if(matches[i].distance < 3 * min_dist && matches[i].distance < distanceThreshold){
-            good_matches.push_back( matches[i]);
-        }
-    }
-    
-    // find the homography
-    // transform the bounding box for this scene
-    vector <Point2f> scene_pts;
-    vector <Point2f> object_pts;
-    object_transformed.clear();
-    if(good_matches.size() > minMatches){
-        for( int i = 0; i < good_matches.size(); i++ )
-        {
-            //-- Get the keypoints from the good matches
-            object_pts.push_back( keypoints_object[ good_matches[i].queryIdx ].pt );
-            scene_pts.push_back( keypoints_scene[ good_matches[i].trainIdx ].pt );
-        }
-        if( scene_pts.size() >5 && object_pts.size() > 5){
-            homography = findHomography( object_pts, scene_pts, CV_RANSAC);
-            perspectiveTransform( object, object_transformed, homography);
-        }
-        // being here means we have found a decent match
-        objectLifeTime += 0.05;
-        
-    }else{
-        // we haven't found a decent match
-        objectLifeTime -= 0.05;
-    }
-    if(objectLifeTime > 1){
-        objectLifeTime = 1;
-    }else if( objectLifeTime < 0){
-        objectLifeTime = 0;
-    }
+    extractor.compute( trackMat, keyPoints_Scene, descriptors_Scene );
+	
 }
 
 
 //-----------------------------------------------------
 void ofxSURFTracker::learnFeatures(){
     // copy features from the scene into the object
-    keypoints_object = keypoints_scene;
-    descriptors_object = descriptors_scene;
+    keyPoints_Object = keyPoints_Scene;
+    descriptors_Object = descriptors_Scene;
     
     // create bounding box to demonstrate the perspective transformation
     ofRectangle boundingBox;
-    object.clear();
-    for(int i = 0; i < keypoints_object.size(); i++){
-        Point2f pt = keypoints_object[i].pt;
+    objectBounds.clear();
+    for(int i = 0; i < keyPoints_Object.size(); i++){
+        Point2f pt = keyPoints_Object[i].pt;
         if(i == 0){
             boundingBox.set(pt.x, pt.y, 0, 0);
         }
@@ -272,20 +222,80 @@ void ofxSURFTracker::learnFeatures(){
     }
     Point2f p1(boundingBox.position.x, boundingBox.position.y);
     Point2f p2(boundingBox.position.x + boundingBox.width, boundingBox.position.y + boundingBox.height);
-    object.push_back(p1);
-    object.push_back(Point2f(p2.x, p1.y));
-    object.push_back(Point2f(p2.x, p2.y));
-    object.push_back(Point2f(p1.x, p2.y));
-    
-    // a new object starts its life at age 0
-    objectLifeTime = 0;
+    objectBounds.push_back(p1);
+    objectBounds.push_back(Point2f(p2.x, p1.y));
+    objectBounds.push_back(Point2f(p2.x, p2.y));
+    objectBounds.push_back(Point2f(p1.x, p2.y));
 }
+
+//-----------------------------------------------------
+int ofxSURFTracker::match(vector<KeyPoint> keyPoints, Mat descriptors, vector <Point2f> bounds){
+	// this function tries to match keypoints and descriptors with the current scene
+	// if there is no match, it returns 0,
+	// if there is a match, it returns the number of matches and saves the perspective transform and bounding box
+	
+
+	
+	// Matching descriptor vectors using FLANN matcher
+	vector< DMatch > matches;
+	if(!descriptors.empty() && !descriptors_Scene.empty() ){
+		flannMatcher.match( descriptors, descriptors_Scene, matches);
+	}
+	
+	// Quick calculation of max and min distances between keypoints
+	double max_dist = 0;
+	double min_dist = 100;
+	for( int i = 0; i < matches.size(); i++ ) {
+		double dist = matches[i].distance;
+		if( dist < min_dist ) min_dist = dist;
+		if( dist > max_dist ) max_dist = dist;
+	}
+	
+	// Filter matches upon quality : distance is between 0 and 1, lower is better
+	good_Matches.clear();
+	for( int i = 0; i < matches.size(); i++ ){
+		if(matches[i].distance < 3 * min_dist && matches[i].distance < distanceThreshold){
+			good_Matches.push_back( matches[i]);
+		}
+	}
+	if(good_Matches.size() > minMatches){
+		// being here means we have found a decent match
+		
+		return good_Matches.size();
+	}else{
+		return 0;
+	}
+	
+}
+
+//-----------------------------------------------------
+void ofxSURFTracker::createHomography(vector<KeyPoint> keyPoints, vector <Point2f> bounds){
+	// find the homography
+	// transform the bounding box for this scene
+	vector <Point2f> scene_pts;
+	vector <Point2f> object_pts;
+	objectBounds_Transformed.clear();
+	if(good_Matches.size() > minMatches){
+		for( int i = 0; i < good_Matches.size(); i++ )
+		{
+			//-- Get the keypoints from the good matches
+			object_pts.push_back( keyPoints[ good_Matches[i].queryIdx ].pt );
+			scene_pts.push_back( keyPoints_Scene[ good_Matches[i].trainIdx ].pt );
+		}
+		if( scene_pts.size() >5 && object_pts.size() > 5){
+			homography = findHomography( object_pts, scene_pts, CV_RANSAC);
+			perspectiveTransform( bounds, objectBounds_Transformed, homography);
+		}
+		
+	}
+}
+
 
 #pragma mark - Transform
 
+//-----------------------------------------------------
 void ofxSURFTracker::transFormPoints(vector<ofPoint> & points){
-    
-    if(objectLifeTime >=1 && points.size() > 0){
+    if(points.size() > 0){
         if(homography.empty()) return;
         vector<Point2f > inputs;
         vector<Point2f > results;
@@ -314,6 +324,28 @@ void ofxSURFTracker::setSize(int _width, int _height){
     height = _height;
     trackImg.clear();
     trackImg.allocate(width, height);
+}
+
+//-----------------------------------------------------
+vector <KeyPoint> ofxSURFTracker::getObjectKeyPoints(){
+	return keyPoints_Object;
+}
+
+//-----------------------------------------------------
+vector <Point2f> ofxSURFTracker::getObjectBounds(){
+	return objectBounds;
+}
+
+//-----------------------------------------------------
+Mat ofxSURFTracker::getObjectDescriptors(){
+	return descriptors_Object;
+}
+
+//-----------------------------------------------------
+ofImage ofxSURFTracker::getCroppedImage(){
+	ofImage newImg;
+	newImg.setFromPixels(croppedImg.getPixels(), croppedImg.getWidth(), croppedImg.getHeight(), OF_IMAGE_COLOR);
+	return newImg;
 }
 
 
