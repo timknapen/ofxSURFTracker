@@ -53,8 +53,10 @@ void ofxSURFTracker::draw(){
 		ofPopStyle();
 	}
     if(bDrawImage){
+		ofPushStyle();
         ofSetColor(255);
         trackImg.draw(0,0);
+		ofPopStyle();
     }
     if(bDrawResponses) {
         drawResponses();
