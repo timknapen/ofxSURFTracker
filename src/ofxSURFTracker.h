@@ -103,6 +103,9 @@ public:
 	float getWidth();
 	float getHeight();
 	
+	vector <ofPoint> getBounds();
+	vector <ofPoint> getTransformedBounds();
+	
 private:
     int width, height;
     ofxCvColorImage inputImg;

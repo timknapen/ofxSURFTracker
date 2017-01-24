@@ -363,6 +363,25 @@ float ofxSURFTracker::getHeight(){
 	return height;
 }
 
+//-----------------------------------------------------
+vector <ofPoint> ofxSURFTracker::getTransformedBounds(){
+	vector <ofPoint> pts;
+	for(int i = 0; i < objectBounds_Transformed.size(); i++){
+		pts.push_back(ofPoint(objectBounds_Transformed[i].x, objectBounds_Transformed[i].y));
+	}
+	return pts;
+}
+
+
+//-----------------------------------------------------
+vector <ofPoint> ofxSURFTracker::getBounds(){
+	vector <ofPoint> pts;
+	for(int i = 0; i < objectBounds.size(); i++){
+		pts.push_back(ofPoint(objectBounds[i].x, objectBounds[i].y));
+	}
+	return pts;
+}
+
 
 
 
