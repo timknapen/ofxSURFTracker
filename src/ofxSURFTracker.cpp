@@ -165,7 +165,6 @@ void ofxSURFTracker::detect(unsigned char *pix, int inputWidth, int inputHeight)
         // this should only happen once
         inputImg.clear();
         inputImg.allocate(inputWidth, inputHeight);
-        cout << "ofxSURFTracker : re-allocated the input image."<<endl;
     }
     
     // create the cvImage from the ofImage
