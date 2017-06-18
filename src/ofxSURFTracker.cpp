@@ -245,18 +245,18 @@ int ofxSURFTracker::match(vector<KeyPoint> keyPoints, Mat descriptors, vector <P
 	}
 	
 	// Quick calculation of max and min distances between keypoints
-	double max_dist = 0;
-	double min_dist = 100;
+	float max_dist = 0;
+	float min_dist = 100;
 	for( int i = 0; i < matches.size(); i++ ) {
-		double dist = matches[i].distance;
-		if( dist < min_dist ) min_dist = dist;
-		if( dist > max_dist ) max_dist = dist;
+		float dist = matches[i].distance;
+		min_dist = MIN(dist, min_dist);
+		max_dist = MAX(dist, max_dist);
 	}
 	
 	// Filter matches upon quality : distance is between 0 and 1, lower is better
 	good_Matches.clear();
 	for( int i = 0; i < matches.size(); i++ ){
-		if(matches[i].distance < 3 * min_dist && matches[i].distance < distanceThreshold){
+		if(matches[i].distance < 3.0 * min_dist && matches[i].distance < distanceThreshold){
 			good_Matches.push_back( matches[i]);
 		}
 	}
